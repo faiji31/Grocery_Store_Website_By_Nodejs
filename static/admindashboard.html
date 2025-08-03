@@ -1,850 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* CSS reset and base styles */
-        :root {
-            --primary-color: #2196F3; /* Blue for admin theme */
-            --secondary-color: #FF9800; /* Orange for accents */
-            --background-color: #f0f2f5;
-            --card-background: #ffffff;
-            --text-color: #333;
-            --light-text-color: #777;
-            --border-color: #e0e0e0;
-            --hover-color: #1976D2;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - Grocery Store</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+  <!-- FontAwesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-        }
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        /* Utility classes */
-        .flex-row { display: flex; align-items: center; }
-        .flex-col { display: flex; flex-direction: column; }
-        .justify-between { justify-content: space-between; }
-        .justify-center { justify-content: center; }
-        .items-center { align-items: center; }
-        .gap-4 { gap: 1rem; }
-        .p-4 { padding: 1rem; }
-        .m-4 { margin: 1rem; }
-        .mt-8 { margin-top: 2rem; }
-        .rounded-lg { border-radius: 0.5rem; }
-        .shadow-md { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .text-2xl { font-size: 1.5rem; }
-        .text-xl { font-size: 1.25rem; }
-        .text-lg { font-size: 1.125rem; }
-        .font-bold { font-weight: 700; }
-        .bg-white { background-color: white; }
-        .text-primary { color: var(--primary-color); }
-        .text-success { color: #4CAF50; }
-        .text-danger { color: #F44336; }
-        .text-warning { color: #FF9800; }
+  <style>
+    :root {
+      --primary: #f57224;
+      --background: #fff;
+      --bg-light: #f8f8f8;
+      --text-primary: #222;
+      --text-secondary: #555;
+      --border-color: #ddd;
+      --shadow: rgba(0,0,0,0.05);
+      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-        /* Main layout structure */
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .sidebar {
-            width: 250px;
-            background-color: var(--card-background);
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem 1rem;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease-in-out;
-            transform: translateX(0);
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 1000;
-        }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-light);
+      color: var(--text-primary);
+    }
 
-        .sidebar.hidden {
-            transform: translateX(-250px);
-        }
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
 
-        .main-content {
-            flex-grow: 1;
-            padding: 2rem;
-            margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
-        }
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: var(--background);
+      border-right: 1px solid var(--border-color);
+      box-shadow: 2px 0 8px var(--shadow);
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      font-weight: 600;
+      user-select: none;
+    }
 
-        .main-content.expanded {
-            margin-left: 0;
-        }
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 2rem;
+      letter-spacing: 2px;
+    }
 
-        /* Sidebar components */
-        .logo {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.375rem;
-            color: var(--text-color);
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: 0.3s;
+    }
 
-        .nav-link:hover, .nav-link.active {
-            background-color: var(--primary-color);
-            color: #ffffff;
-        }
+    .nav-links a.active,
+    .nav-links a:hover {
+      background-color: var(--primary);
+      color: white;
+    }
 
-        .nav-link:hover svg, .nav-link.active svg {
-            fill: #ffffff;
-        }
+    .logout {
+      margin-top: auto;
+      color: white;
+      background-color: #d32f2f;
+      text-align: center;
+      padding: 0.75rem;
+      border-radius: 6px;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+    }
 
-        .nav-link i {
-            margin-right: 1rem;
-            width: 20px;
-            text-align: center;
-        }
+    .logout:hover {
+      background-color: #b71c1c;
+    }
 
-        .logout-btn {
-            background-color: #f44336;
-            color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 0.375rem;
-            text-align: center;
-            text-decoration: none;
-            margin-top: auto;
-            transition: background-color 0.2s;
-        }
+    /* Main Content */
+    .main {
+      margin-left: 240px;
+      padding: 2.5rem 3rem;
+      width: 100%;
+      background-color: var(--bg-light);
+    }
 
-        .logout-btn:hover {
-            background-color: #d32f2f;
-        }
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
 
-        /* Header and toggle button */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: var(--card-background);
-            padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
 
-        .menu-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            color: var(--primary-color);
-        }
+    .admin-profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .admin-profile img:hover {
+      transform: scale(1.1);
+      cursor: pointer;
+    }
 
-        /* Profile and Search */
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .profile-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-color);
-        }
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.8rem;
+    }
 
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
+    .card {
+      background-color: var(--background);
+      padding: 1.6rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--shadow);
+      transition: transform 0.3s ease;
+      cursor: default;
+    }
 
-        .user-name {
-            font-weight: 600;
-        }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 22px rgba(245, 114, 36, 0.3);
+    }
 
-        .user-type {
-            font-size: 0.8rem;
-            color: var(--light-text-color);
-        }
-        
-        .search-container {
-            position: relative;
-        }
-        
-        .search-input {
-            padding: 0.5rem 1rem;
-            padding-left: 2.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.375rem;
-            width: 250px;
-        }
-        
-        .search-container i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--light-text-color);
-        }
+    .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
 
-        /* Dashboard grid and cards */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
+    .card .value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
 
-        .card {
-            background-color: var(--card-background);
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s ease-in-out;
-        }
+    /* Charts Grid */
+    .charts-grid {
+      margin-top: 3rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-header {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .chart-card {
+      background-color: var(--background);
+      padding: 1.8rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px var(--shadow);
+      height: 350px;
+    }
 
-        .card-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
+    .chart-card h3 {
+      margin-bottom: 1.2rem;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
 
-        .card-content {
-            font-size: 1rem;
-        }
-        
-        .metric {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .metric-label {
-            color: var(--light-text-color);
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: var(--background-color);
-            font-weight: 600;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            text-align: center;
-        }
-
-        .status-success { background-color: #4CAF50; }
-        .status-pending { background-color: #FF9800; }
-        .status-danger { background-color: #F44336; }
-        .status-processing { background-color: #2196F3; }
-
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
-                transform: translateX(-200px);
-            }
-
-            .sidebar.hidden {
-                transform: translateX(-200px);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header {
-                padding: 1rem;
-            }
-            
-            .search-container {
-                display: none;
-            }
-        }
-    </style>
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        box-shadow: none;
+        border-right: none;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 1rem 0;
+      }
+      .logo {
+        display: none;
+      }
+      .nav-links a {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+      }
+      .main {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="admin-container">
+    <aside class="sidebar">
+      <div class="logo">GROCERY</div>
+      <nav class="nav-links">
+        <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="product.html"><i class="fas fa-box-open"></i> Products</a>
+        <a href="orders.html"><i class="fas fa-bag-shopping"></i> Orders</a>
+        <a href="users.html"><i class="fas fa-users"></i> Users</a>
+        <a href="categories.html"><i class="fas fa-list"></i> Categories</a>
+        <a href="reviews.html"><i class="fas fa-star-half-stroke"></i> Reviews</a>
+        <a href="settings.html"><i class="fas fa-gear"></i> Settings</a>
+        <a href="#" class="logout"><i class="fas fa-right-from-bracket"></i> Logout</a>
+      </nav>
+    </aside>
 
-    <div class="dashboard-container">
-        
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="logo">Admin Panel</div>
-            
-            <nav>
-                <a href="#overview" class="nav-link active">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>Overview</span>
-                </a>
-                <a href="#users" class="nav-link">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Users</span>
-                </a>
-                <a href="#products" class="nav-link">
-                    <i class="fa-solid fa-box-archive"></i>
-                    <span>Products</span>
-                </a>
-                <a href="#orders" class="nav-link">
-                    <i class="fa-solid fa-receipt"></i>
-                    <span>Orders</span>
-                </a>
-                <a href="#reviews" class="nav-link">
-                    <i class="fa-solid fa-star-half-stroke"></i>
-                    <span>Reviews</span>
-                </a>
-                <a href="#categories" class="nav-link">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <span>Categories</span>
-                </a>
-            </nav>
-
-            <a href="#" class="logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Logout</span>
-            </a>
+    <main class="main">
+      <header class="main-header">
+        <h1>Dashboard Overview</h1>
+        <div class="admin-profile">
+          <img src="https://placehold.co/50x50/f57224/fff?text=AD" alt="Admin" />
+          <span>Admin</span>
         </div>
+      </header>
 
-        <!-- Main Content -->
-        <div class="main-content" id="main-content">
-            <!-- Header -->
-            <header class="header">
-                <button class="menu-toggle" id="menu-toggle">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <div class="search-container">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search..." class="search-input">
-                </div>
-                <div class="profile-section">
-                    <div class="user-info">
-                        <span class="user-name">Admin User</span>
-                        <span class="user-type">Admin</span>
-                    </div>
-                    <img src="https://placehold.co/100x100/2196F3/ffffff?text=AD" alt="Profile Picture" class="profile-img">
-                </div>
-            </header>
-
-            <!-- Dashboard sections -->
-            <div class="dashboard-section" id="overview">
-                <h1 class="text-2xl font-bold mt-8">Admin Dashboard Overview</h1>
-                <p class="text-lg text-light-text-color">Store performance metrics at a glance.</p>
-                
-                <div class="dashboard-grid">
-                    <!-- Total Sales Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Total Sales</h3>
-                            <i class="fa-solid fa-sack-dollar text-primary"></i>
-                        </div>
-                        <div class="card-content">
-                            <div class="metric">BDT 12,500</div>
-                            <div class="metric-label">Last 30 Days</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Total Users Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Total Users</h3>
-                            <i class="fa-solid fa-users text-warning"></i>
-                        </div>
-                        <div class="card-content">
-                            <div class="metric">5,123</div>
-                            <div class="metric-label">Registered Clients & Sellers</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Total Products Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Total Products</h3>
-                            <i class="fa-solid fa-box-archive text-success"></i>
-                        </div>
-                        <div class="card-content">
-                            <div class="metric">1,540</div>
-                            <div class="metric-label">Across All Categories</div>
-                        </div>
-                    </div>
-
-                    <!-- Total Orders Card -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Total Orders</h3>
-                            <i class="fa-solid fa-receipt text-danger"></i>
-                        </div>
-                        <div class="card-content">
-                            <div class="metric">2,345</div>
-                            <div class="metric-label">Total orders placed</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-grid mt-4">
-                    <!-- Monthly Sales Chart Card -->
-                    <div class="card col-span-2">
-                        <div class="card-header">
-                            <h3>Monthly Sales Revenue</h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="monthlySalesChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- User Registration Chart Card -->
-                    <div class="card col-span-2">
-                        <div class="card-header">
-                            <h3>New User Registrations</h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="userRegistrationChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dashboard-section hidden" id="users">
-                <h1 class="text-2xl font-bold mt-8">Manage Users</h1>
-                <p class="text-lg text-light-text-color">View and manage all registered clients and sellers.</p>
-                <div class="card mt-4 table-responsive">
-                    <div class="card-header">
-                        <h3>Recent User Signups</h3>
-                    </div>
-                    <table id="users-table">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dummy user data populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="dashboard-section hidden" id="products">
-                <h1 class="text-2xl font-bold mt-8">Manage Products</h1>
-                <p class="text-lg text-light-text-color">Edit, add, or remove products from the store.</p>
-                <div class="card mt-4 table-responsive">
-                    <div class="card-header">
-                        <h3>Recent Products</h3>
-                    </div>
-                    <table id="products-table">
-                        <thead>
-                            <tr>
-                                <th>Product ID</th>
-                                <th>Name</th>
-                                <th>Price</th>
-                                <th>Category</th>
-                                <th>Seller</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dummy product data populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="dashboard-section hidden" id="orders">
-                <h1 class="text-2xl font-bold mt-8">Manage Orders</h1>
-                <p class="text-lg text-light-text-color">View and update the status of all orders.</p>
-                <div class="card mt-4 table-responsive">
-                    <div class="card-header">
-                        <h3>All Orders</h3>
-                    </div>
-                    <table id="orders-table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Client ID</th>
-                                <th>Order Date</th>
-                                <th>Total Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dummy order data populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="dashboard-section hidden" id="reviews">
-                <h1 class="text-2xl font-bold mt-8">Manage Reviews</h1>
-                <p class="text-lg text-light-text-color">Monitor and moderate product reviews.</p>
-                <div class="card mt-4 table-responsive">
-                    <div class="card-header">
-                        <h3>Recent Reviews</h3>
-                    </div>
-                    <table id="reviews-table">
-                        <thead>
-                            <tr>
-                                <th>Review ID</th>
-                                <th>Product</th>
-                                <th>Client</th>
-                                <th>Rating</th>
-                                <th>Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dummy reviews populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="dashboard-section hidden" id="categories">
-                <h1 class="text-2xl font-bold mt-8">Manage Categories</h1>
-                <p class="text-lg text-light-text-color">Add, edit, or remove product categories.</p>
-                <div class="card mt-4 table-responsive">
-                    <div class="card-header">
-                        <h3>Current Categories</h3>
-                    </div>
-                    <table id="categories-table">
-                        <thead>
-                            <tr>
-                                <th>Category ID</th>
-                                <th>Category Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dummy categories populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <section class="stats-grid">
+        <div class="card">
+          <h3>Total Sales</h3>
+          <p class="value">৳12,500</p>
         </div>
-    </div>
+        <div class="card">
+          <h3>Total Orders</h3>
+          <p class="value">2,345</p>
+        </div>
+        <div class="card">
+          <h3>Total Products</h3>
+          <p class="value">1,540</p>
+        </div>
+        <div class="card">
+          <h3>Total Users</h3>
+          <p class="value">5,123</p>
+        </div>
+      </section>
 
-    <script>
-        // DOM elements
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const dashboardSections = document.querySelectorAll('.dashboard-section');
-        const usersTableBody = document.querySelector('#users-table tbody');
-        const productsTableBody = document.querySelector('#products-table tbody');
-        const ordersTableBody = document.querySelector('#orders-table tbody');
-        const reviewsTableBody = document.querySelector('#reviews-table tbody');
-        const categoriesTableBody = document.querySelector('#categories-table tbody');
-        
-        // Dummy Data for the Admin Dashboard
-        const dummyData = {
-            monthlySales: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                data: [1500, 2500, 2000, 3500, 4000, 5500]
-            },
-            userRegistrations: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                data: [50, 80, 65, 120, 90, 150]
-            },
-            users: [
-                { id: 101, name: 'John Doe', email: 'john@example.com', role: 'Client', joined: '2025-07-01' },
-                { id: 102, name: 'Jane Smith', email: 'jane@example.com', role: 'Seller', joined: '2025-07-05' },
-                { id: 103, name: 'Mike Johnson', email: 'mike@example.com', role: 'Client', joined: '2025-07-10' },
-            ],
-            products: [
-                { id: 1, name: 'Fresh Apples', price: 250.00, category: 'Fruits', seller: 'Farm Fresh' },
-                { id: 2, name: 'Basmati Rice', price: 1500.00, category: 'Staples', seller: 'Grain Mart' },
-                { id: 3, name: 'Local Bananas', price: 60.00, category: 'Fruits', seller: 'Farm Fresh' },
-            ],
-            orders: [
-                { id: 1001, clientId: 101, date: '2025-07-29', amount: 330.00, status: 'Pending' },
-                { id: 1002, clientId: 103, date: '2025-07-25', amount: 730.00, status: 'Processing' },
-                { id: 1003, clientId: 102, date: '2025-07-20', amount: 150.00, status: 'Shipped' },
-            ],
-            reviews: [
-                { id: 1, product: 'Fresh Apples', client: 'John Doe', rating: 5, comment: 'Very crisp and fresh!' },
-                { id: 2, product: 'Basmati Rice', client: 'Mike Johnson', rating: 4, comment: 'Good quality, but a bit pricey.' },
-            ],
-            categories: [
-                { id: 1, name: 'Fruits' },
-                { id: 2, name: 'Dairy & Eggs' },
-                { id: 3, name: 'Staples' },
-                { id: 4, name: 'Meat & Fish' }
-            ]
-        };
+      <section class="charts-grid">
+        <div class="chart-card">
+          <h3>Monthly Sales Revenue</h3>
+          <canvas id="salesChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>New Registrations</h3>
+          <canvas id="usersChart"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            // Populate tables with dummy data
-            populateUsersTable();
-            populateProductsTable();
-            populateOrdersTable();
-            populateReviewsTable();
-            populateCategoriesTable();
-            drawCharts();
-
-            // Toggle sidebar on click
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('hidden');
-                mainContent.classList.toggle('expanded');
-            });
-
-            // Handle navigation clicks
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    
-                    // Remove active class from all links
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    
-                    // Add active class to clicked link
-                    link.classList.add('active');
-
-                    // Hide all sections
-                    dashboardSections.forEach(section => section.classList.add('hidden'));
-
-                    // Show the target section
-                    const targetId = link.getAttribute('href').substring(1);
-                    document.getElementById(targetId).classList.remove('hidden');
-                    
-                    // On mobile, hide sidebar after clicking a link
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.add('hidden');
-                        mainContent.classList.remove('expanded');
-                    }
-                });
-            });
-            
-            // Initial state for responsive design
-            if (window.innerWidth <= 768) {
-                sidebar.classList.add('hidden');
-                mainContent.classList.remove('expanded');
-            } else {
-                sidebar.classList.remove('hidden');
-                mainContent.classList.add('expanded');
-            }
-        });
-        
-        // Functions to populate dashboard tables with dummy data
-        function populateUsersTable() {
-            usersTableBody.innerHTML = '';
-            dummyData.users.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.name}</td>
-                    <td>${user.email}</td>
-                    <td>${user.role}</td>
-                    <td>${user.joined}</td>
-                `;
-                usersTableBody.appendChild(tr);
-            });
+  <script>
+    // Monthly Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        datasets: [{
+          label: 'Sales (৳)',
+          data: [1200, 1900, 3000, 2500, 3200, 4000, 4600],
+          backgroundColor: 'rgba(245, 114, 36, 0.2)',
+          borderColor: 'var(--primary)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
         }
-        
-        function populateProductsTable() {
-            productsTableBody.innerHTML = '';
-            dummyData.products.forEach(product => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${product.id}</td>
-                    <td>${product.name}</td>
-                    <td>BDT ${product.price.toFixed(2)}</td>
-                    <td>${product.category}</td>
-                    <td>${product.seller}</td>
-                `;
-                productsTableBody.appendChild(tr);
-            });
-        }
+      }
+    });
 
-        function populateOrdersTable() {
-            ordersTableBody.innerHTML = '';
-            dummyData.orders.forEach(order => {
-                const tr = document.createElement('tr');
-                let statusClass = '';
-                if (order.status === 'Pending') statusClass = 'status-pending';
-                else if (order.status === 'Processing') statusClass = 'status-processing';
-                else if (order.status === 'Shipped') statusClass = 'status-success';
-                else statusClass = 'status-danger';
-
-                tr.innerHTML = `
-                    <td>${order.id}</td>
-                    <td>${order.clientId}</td>
-                    <td>${order.date}</td>
-                    <td>BDT ${order.amount.toFixed(2)}</td>
-                    <td><span class="status-badge ${statusClass}">${order.status}</span></td>
-                `;
-                ordersTableBody.appendChild(tr);
-            });
+    // New User Registrations Chart
+    const usersCtx = document.getElementById('usersChart').getContext('2d');
+    new Chart(usersCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        datasets: [{
+          label: 'New Users',
+          data: [150, 200, 180, 220, 240, 280, 310],
+          backgroundColor: '#f57224'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
         }
-        
-        function populateReviewsTable() {
-            reviewsTableBody.innerHTML = '';
-            dummyData.reviews.forEach(review => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${review.id}</td>
-                    <td>${review.product}</td>
-                    <td>${review.client}</td>
-                    <td>${review.rating} / 5</td>
-                    <td>${review.comment}</td>
-                `;
-                reviewsTableBody.appendChild(tr);
-            });
-        }
-
-        function populateCategoriesTable() {
-            categoriesTableBody.innerHTML = '';
-            dummyData.categories.forEach(category => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${category.id}</td>
-                    <td>${category.name}</td>
-                `;
-                categoriesTableBody.appendChild(tr);
-            });
-        }
-
-        // Functions to draw charts with dummy data
-        function drawCharts() {
-            // Monthly Sales Chart
-            const ctxSales = document.getElementById('monthlySalesChart').getContext('2d');
-            new Chart(ctxSales, {
-                type: 'line',
-                data: {
-                    labels: dummyData.monthlySales.labels,
-                    datasets: [{
-                        label: 'Monthly Sales (BDT)',
-                        data: dummyData.monthlySales.data,
-                        borderColor: var(--primary-color),
-                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: false,
-                            text: 'Monthly Sales Revenue'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-
-            // User Registration Chart
-            const ctxUsers = document.getElementById('userRegistrationChart').getContext('2d');
-            new Chart(ctxUsers, {
-                type: 'bar',
-                data: {
-                    labels: dummyData.userRegistrations.labels,
-                    datasets: [{
-                        label: 'New Users',
-                        data: dummyData.userRegistrations.data,
-                        backgroundColor: 'rgba(255, 152, 0, 0.8)',
-                        borderColor: 'rgba(255, 152, 0, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: false,
-                            text: 'New User Registrations'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>

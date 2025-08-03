@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Our Products</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome for icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+
+  <style>
+    /* Match font family with dashboards */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f8f8; /* Same bg as dashboards */
+    }
+
+    /* Override Tailwind colors with brand primary */
+    :root {
+      --primary-color: #f57224; /* Daraz orange */
+    }
+
+    /* Header styling */
+    header {
+      background-color: white;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+    header a {
+      color: #222222; /* Dark text */
+      font-weight: 900;
+    }
+    header a i {
+      color: var(--primary-color);
+    }
+    header a:hover {
+      color: var(--primary-color);
+    }
+
+    /* Product card hover effect to match dashboard cards */
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 22px rgba(245, 114, 36, 0.3);
+    }
+
+    /* Button styles */
+    button {
+      background-color: var(--primary-color);
+      font-weight: 700;
+    }
+    button:hover {
+      background-color: #d95404;
+    }
+
+    /* Modal styles - smooth scale and fade consistent with dashboards */
+    #product-modal .bg-white {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    /* Scrollbar styles same as previous */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <!-- Link to the client dashboard page -->
+      <a
+        href="client-dashboard.html"
+        class="flex items-center space-x-2 text-2xl font-extrabold"
+      >
+        <i class="fa-solid fa-store"></i>
+        <span>Client Dashboard</span>
+      </a>
+      <div class="flex items-center space-x-6">
+        <!-- Shopping Cart Icon -->
+        <div class="relative">
+          <button
+            id="cart-button"
+            class="text-gray-700 hover:text-primary transition-colors"
+          >
+            <i class="fa-solid fa-shopping-cart text-2xl"></i>
+          </button>
+          <span
+            id="cart-count"
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full scale-0 transition-transform duration-300"
+            >0</span
+          >
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 container mx-auto px-4 py-8">
+    <h1
+      class="text-4xl font-extrabold text-center text-gray-900 mb-8"
+    >
+      Available Products
+    </h1>
+
+    <!-- Product Grid -->
+    <div
+      id="product-grid"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+    >
+      <!-- Product cards injected here -->
+    </div>
+
+    <!-- Loading Spinner -->
+    <div
+      id="loading-spinner"
+      class="flex items-center justify-center p-8 hidden"
+    >
+      <i
+        class="fa-solid fa-spinner fa-spin-pulse text-4xl text-primary"
+      ></i>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      id="empty-state"
+      class="hidden text-center p-12 text-gray-400"
+    >
+      <i class="fa-solid fa-box-open text-6xl mb-4"></i>
+      <h2 class="text-2xl font-bold text-gray-600">No products found.</h2>
+      <p class="mt-2">Please check back later!</p>
+    </div>
+  </main>
+
+  <!-- Product Detail Modal -->
+  <div
+    id="product-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100] p-4"
+  >
+    <div
+      class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative transform scale-95 opacity-0"
+    >
+      <button
+        class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold"
+        onclick="closeProductModal()"
+      >
+        &times;
+      </button>
+      <div
+        id="modal-content"
+        class="flex flex-col md:flex-row gap-6"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Message Box -->
+  <div
+    id="message-box"
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg hidden z-[101] transition-transform duration-300"
+  ></div>
+
+  <script>
+    const products = [
+      {
+        product_id: 1,
+        product_name: 'Fresh Apples (Red)',
+        description: 'Crisp and juicy red apples, imported.',
+        price: 250.0,
+        unit: 'kg',
+        stock_quantity: 100,
+        image_url:
+          'https://placehold.co/400x400/22c55e/ffffff?text=Apples',
+      },
+      {
+        product_id: 2,
+        product_name: 'Local Bananas (Deshi)',
+        description: 'Sweet local bananas, 4 pieces per bunch.',
+        price: 60.0,
+        unit: 'dozen',
+        stock_quantity: 200,
+        image_url:
+          'https://placehold.co/400x400/facc15/000000?text=Bananas',
+      },
+      {
+        product_id: 3,
+        product_name: 'Farm Fresh Milk',
+        description: 'Pure cow milk, 1 liter pack.',
+        price: 80.0,
+        unit: 'liter',
+        stock_quantity: 50,
+        image_url:
+          'https://placehold.co/400x400/3b82f6/ffffff?text=Milk',
+      },
+      {
+        product_id: 4,
+        product_name: 'Broiler Chicken',
+        description: 'Whole broiler chicken, approx. 1kg.',
+        price: 180.0,
+        unit: 'kg',
+        stock_quantity: 30,
+        image_url:
+          'https://placehold.co/400x400/ef4444/ffffff?text=Chicken',
+      },
+      {
+        product_id: 5,
+        product_name: 'Basmati Rice',
+        description: 'Premium Basmati rice, 5kg pack.',
+        price: 550.0,
+        unit: 'pack',
+        stock_quantity: 80,
+        image_url:
+          'https://placehold.co/400x400/65a30d/ffffff?text=Rice',
+      },
+      {
+        product_id: 6,
+        product_name: 'Local Onions',
+        description: 'Fresh local onions, essential for cooking.',
+        price: 70.0,
+        unit: 'kg',
+        stock_quantity: 150,
+        image_url:
+          'https://placehold.co/400x400/94a3b8/ffffff?text=Onions',
+      },
+      {
+        product_id: 7,
+        product_name: 'Brown Eggs',
+        description: 'Pack of 6 brown eggs.',
+        price: 75.0,
+        unit: 'pack',
+        stock_quantity: 120,
+        image_url:
+          'https://placehold.co/400x400/8b5cf6/ffffff?text=Eggs',
+      },
+    ];
+
+    const productGrid = document.getElementById('product-grid');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const emptyState = document.getElementById('empty-state');
+    const cartCount = document.getElementById('cart-count');
+    const productModal = document.getElementById('product-modal');
+    const modalContent = document.getElementById('modal-content');
+    const messageBox = document.getElementById('message-box');
+
+    let cart = {};
+
+    function renderProductCard(product) {
+      return `
+          <div
+            class="product-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transition-transform duration-200"
+          >
+            <img
+              src="${product.image_url}"
+              alt="${product.product_name}"
+              class="w-full h-48 sm:h-56 md:h-64 cursor-pointer object-cover object-center"
+              onclick="showProductModal(${product.product_id})"
+            />
+            <div class="p-4 flex-1 flex flex-col">
+              <h3
+                class="font-semibold text-lg text-gray-900 truncate"
+              >
+                ${product.product_name}
+              </h3>
+              <p class="text-sm text-gray-500 mt-1">
+                ${product.description.substring(0, 50)}...
+              </p>
+              <div
+                class="mt-4 flex items-center justify-between"
+              >
+                <span
+                  class="text-xl font-bold text-primary"
+                >
+                  BDT ${product.price.toFixed(2)} / ${product.unit}
+                </span>
+                <button
+                  class="bg-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#d95404] transition-colors"
+                  onclick="addToCart(${product.product_id})"
+                >
+                  <i class="fa-solid fa-cart-plus mr-2"></i>Add
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+    }
+
+    function populateProductGrid(productList) {
+      loadingSpinner.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      productGrid.innerHTML = '';
+
+      setTimeout(() => {
+        loadingSpinner.classList.add('hidden');
+        if (productList.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          productGrid.innerHTML = productList
+            .map(renderProductCard)
+            .join('');
+        }
+      }, 800);
+    }
+
+    function addToCart(productId) {
+      if (cart[productId]) {
+        cart[productId]++;
+      } else {
+        cart[productId] = 1;
+      }
+      updateCartCount();
+      showMessage('Product added to cart!', 'bg-primary');
+    }
+
+    function updateCartCount() {
+      const totalItems = Object.values(cart).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      cartCount.textContent = totalItems;
+      if (totalItems > 0) {
+        cartCount.classList.remove('scale-0');
+        cartCount.classList.add('scale-100');
+      } else {
+        cartCount.classList.remove('scale-100');
+        cartCount.classList.add('scale-0');
+      }
+    }
+
+    function showProductModal(productId) {
+      const product = products.find((p) => p.product_id === productId);
+      if (!product) return;
+
+      modalContent.innerHTML = `
+          <div class="flex-shrink-0 w-full md:w-1/2">
+            <img
+              src="${product.image_url}"
+              alt="${product.product_name}"
+              class="rounded-xl w-full"
+            />
+          </div>
+          <div class="flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="text-3xl font-bold text-gray-900">
+                ${product.product_name}
+              </h3>
+              <p class="text-gray-500 mt-2">
+                ${product.description}
+              </p>
+              <div
+                class="mt-4 flex items-center justify-between"
+              >
+                <span
+                  class="text-2xl font-bold text-primary"
+                >
+                  BDT ${product.price.toFixed(2)}
+                </span>
+                <span class="text-sm text-gray-500">
+                  Unit: ${product.unit}
+                </span>
+              </div>
+              <p class="text-sm text-gray-400 mt-2">
+                Available in stock: ${product.stock_quantity}
+              </p>
+            </div>
+            <div class="mt-6">
+              <button
+                class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold text-lg hover:bg-[#d95404] transition-colors"
+                onclick="addToCart(${product.product_id}); closeProductModal()"
+              >
+                <i class="fa-solid fa-cart-plus mr-2"></i>Add to Cart
+              </button>
+            </div>
+          </div>
+        `;
+      productModal.classList.remove('hidden');
+      setTimeout(() => {
+        const modalInner = productModal.querySelector('.bg-white');
+        modalInner.classList.remove('scale-95', 'opacity-0');
+        modalInner.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeProductModal() {
+      const modalInner = productModal.querySelector('.bg-white');
+      modalInner.classList.remove('scale-100', 'opacity-100');
+      modalInner.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        productModal.classList.add('hidden');
+        modalContent.innerHTML = '';
+      }, 300);
+    }
+
+    function showMessage(message, bgColor) {
+      messageBox.textContent = message;
+      messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg z-[101] transition-all duration-300 transform translate-y-0 ${bgColor}`;
+      setTimeout(() => {
+        messageBox.classList.add('hidden');
+      }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populateProductGrid(products);
+      updateCartCount();
+    });
+  </script>
+</body>
+</html>
