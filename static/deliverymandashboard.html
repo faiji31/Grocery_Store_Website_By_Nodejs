@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deliveryman Dashboard</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles and overrides */
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b; /* slate-800 */
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-400 */
+        }
+
+        /* Custom styles for glassmorphism effect */
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.17);
+        }
+
+        .tab-button.active {
+            color: #2563eb; /* Blue-600 */
+            border-color: #2563eb; /* Blue-600 */
+            font-weight: 600;
+        }
+
+        /* Sidebar transition */
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Mobile menu button animation */
+        .hamburger-menu span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: #1e293b;
+            margin: 5px 0;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .hamburger-menu.open span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .hamburger-menu.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-menu.open span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 flex h-screen overflow-hidden">
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="mobile-menu-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 hidden lg:hidden"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 w-64 bg-slate-800 text-white p-6 flex flex-col justify-between z-50 shadow-lg lg:rounded-r-xl">
+        <div>
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-truck-ramp-box text-3xl text-blue-500"></i>
+                    <h2 class="text-2xl font-bold">DriverApp</h2>
+                </div>
+                <!-- Close button for mobile -->
+                <button id="close-sidebar" class="lg:hidden text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-5xl text-white mb-3">
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+                <p class="text-xl font-bold">Deliveryman</p>
+                <p class="text-gray-400 text-sm" id="deliveryman-id">DLV001</p>
+            </div>
+            
+            <nav class="space-y-2">
+                <button id="new-orders-tab" class="tab-button w-full text-left py-3 px-4 rounded-lg flex items-center space-x-3 text-lg transition-colors duration-200 hover:bg-slate-700 active-tab active">
+                    <i class="fa-solid fa-bell w-5"></i>
+                    <span>New Orders</span>
+                    <span id="new-orders-badge" class="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-red-500 text-white"></span>
+                </button>
+                <button id="current-deliveries-tab" class="tab-button w-full text-left py-3 px-4 rounded-lg flex items-center space-x-3 text-lg transition-colors duration-200 hover:bg-slate-700">
+                    <i class="fa-solid fa-truck-fast w-5"></i>
+                    <span>Current</span>
+                </button>
+                <button id="delivery-history-tab" class="tab-button w-full text-left py-3 px-4 rounded-lg flex items-center space-x-3 text-lg transition-colors duration-200 hover:bg-slate-700">
+                    <i class="fa-solid fa-clock-rotate-left w-5"></i>
+                    <span>History</span>
+                </button>
+            </nav>
+        </div>
+        
+        <div class="mt-8">
+            <button id="status-button" class="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-colors duration-200 bg-green-500 text-white hover:bg-green-600">
+                <i class="fa-solid fa-circle text-xs"></i>
+                <span id="status-text">Go Offline</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-6 lg:mb-8">
+            <div class="flex items-center space-x-4">
+                <!-- Hamburger menu for mobile -->
+                <button id="open-sidebar" class="lg:hidden">
+                    <div class="hamburger-menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </button>
+                <h1 class="text-3xl font-extrabold text-slate-800">Hello, Deliveryman!</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span id="status-badge" class="px-3 py-1 text-sm font-semibold text-white bg-green-500 rounded-full">Online</span>
+            </div>
+        </header>
+
+        <!-- Stats Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="p-6 rounded-lg glass-card flex items-center justify-between shadow-xl">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Deliveries</h3>
+                    <p class="text-2xl font-bold text-blue-600" id="stat-total-deliveries">0</p>
+                </div>
+                <i class="fa-solid fa-box-open text-3xl text-gray-400"></i>
+            </div>
+            <div class="p-6 rounded-lg glass-card flex items-center justify-between shadow-xl">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Total Earnings</h3>
+                    <p class="text-2xl font-bold text-blue-600" id="stat-total-earnings">BDT 0.00</p>
+                </div>
+                <i class="fa-solid fa-wallet text-3xl text-gray-400"></i>
+            </div>
+            <div class="p-6 rounded-lg glass-card flex items-center justify-between shadow-xl">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">Rating</h3>
+                    <p class="text-2xl font-bold text-blue-600" id="stat-rating">5.0</p>
+                </div>
+                <i class="fa-solid fa-star text-3xl text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Main Content Sections -->
+        <div id="dashboard-sections-container">
+            <!-- New Orders Section -->
+            <section id="new-orders" class="dashboard-section">
+                <h2 class="text-2xl font-bold mb-4">Pending Orders</h2>
+                <div id="new-orders-list" class="space-y-4">
+                    <!-- Orders will be dynamically injected here -->
+                </div>
+            </section>
+
+            <!-- Current Deliveries Section -->
+            <section id="current-deliveries" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-4">Active Deliveries</h2>
+                <div id="current-deliveries-list" class="space-y-4">
+                    <!-- Active deliveries will be injected here -->
+                </div>
+            </section>
+
+            <!-- Delivery History Section -->
+            <section id="delivery-history" class="dashboard-section hidden">
+                <h2 class="text-2xl font-bold mb-4">Completed Deliveries</h2>
+                <div id="delivery-history-list" class="space-y-4">
+                    <!-- Delivery history will be injected here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="hidden flex items-center justify-center p-8">
+            <i class="fa-solid fa-spinner fa-spin-pulse text-4xl text-blue-500"></i>
+        </div>
+
+        <!-- Message Box -->
+        <div id="message-box" class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg hidden z-[100] transition-transform duration-300">
+            <!-- Messages will be injected here -->
+        </div>
+
+    </main>
+
+    <!-- Order Detail Modal -->
+    <div id="order-detail-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg max-w-sm w-full mx-4 shadow-lg glass-card">
+            <div class="flex justify-between items-center pb-2 border-b mb-4">
+                <h3 class="text-2xl font-bold text-slate-800">Order Details</h3>
+                <button class="text-gray-400 hover:text-gray-600 text-xl" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-content">
+                <!-- Order details will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dummy data for a deliveryman. In a real app, this would be fetched from a backend.
+        const deliveryman = {
+            id: 'DLV001',
+            status: 'online',
+            name: 'John Smith',
+            totalDeliveries: 42,
+            totalEarnings: 25000.50,
+            rating: 4.8,
+        };
+
+        let orders = [
+            {
+                id: 'ORD1001',
+                client: {
+                    name: 'John Doe',
+                    address: '123 Main St, Anytown, USA',
+                    phone: '0123456789'
+                },
+                items: [
+                    { name: 'Fresh Apples', quantity: 2, price: 50 },
+                    { name: 'Bananas', quantity: 1, price: 20 }
+                ],
+                total: 70,
+                status: 'pending',
+                assigned_at: '2025-08-03T10:00:00Z',
+                pickup_location: 'Grocery Mart, 505 Market St'
+            },
+            {
+                id: 'ORD1002',
+                client: {
+                    name: 'Jane Smith',
+                    address: '456 Oak Ave, Anytown, USA',
+                    phone: '0987654321'
+                },
+                items: [
+                    { name: 'Milk', quantity: 1, price: 45 },
+                    { name: 'Bread', quantity: 1, price: 30 }
+                ],
+                total: 75,
+                status: 'in-transit',
+                assigned_at: '2025-08-03T09:30:00Z',
+                pickup_location: 'City Bakery, 789 Elm Rd'
+            },
+            {
+                id: 'ORD0999',
+                client: {
+                    name: 'Mike Johnson',
+                    address: '789 Pine Ln, Anytown, USA',
+                    phone: '01122334455'
+                },
+                items: [
+                    { name: 'Rice', quantity: 1, price: 500 }
+                ],
+                total: 500,
+                status: 'delivered',
+                assigned_at: '2025-08-02T15:00:00Z',
+                delivered_at: '2025-08-02T16:30:00Z',
+                pickup_location: 'Mega Store, 101 Mall Blvd'
+            },
+            {
+                id: 'ORD1003',
+                client: {
+                    name: 'Sarah Connor',
+                    address: '100 Cyberdyne St, Anytown, USA',
+                    phone: '0123456789'
+                },
+                items: [
+                    { name: 'Terminator T-800', quantity: 1, price: 1000000000 },
+                ],
+                total: 1000000000,
+                status: 'pending',
+                assigned_at: '2025-08-03T11:00:00Z',
+                pickup_location: 'Skynet Research Facility, 123 Future Rd'
+            }
+        ];
+
+        // UI elements
+        const appContainer = document.getElementById('app');
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarBtn = document.getElementById('open-sidebar');
+        const closeSidebarBtn = document.getElementById('close-sidebar');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const newOrdersList = document.getElementById('new-orders-list');
+        const currentDeliveriesList = document.getElementById('current-deliveries-list');
+        const deliveryHistoryList = document.getElementById('delivery-history-list');
+        const sections = document.querySelectorAll('.dashboard-section');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const modal = document.getElementById('order-detail-modal');
+        const modalContent = document.getElementById('modal-content');
+        const statusBadge = document.getElementById('status-badge');
+        const statusButton = document.getElementById('status-button');
+        const statusText = document.getElementById('status-text');
+        const newOrdersBadge = document.getElementById('new-orders-badge');
+        const messageBox = document.getElementById('message-box');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        let currentOrderId = null;
+
+        /**
+         * Renders a single order card for display.
+         * @param {Object} order - The order object.
+         * @returns {string} The HTML string for the order card.
+         */
+        function renderOrderCard(order) {
+            let statusBadgeClass = '';
+            let statusText = '';
+            let actionButton = '';
+
+            switch(order.status) {
+                case 'pending':
+                    statusBadgeClass = 'bg-yellow-500';
+                    statusText = 'New Order';
+                    actionButton = `<button class="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600 transition-colors duration-200" onclick="showModal('${order.id}')">Accept Order</button>`;
+                    break;
+                case 'in-transit':
+                    statusBadgeClass = 'bg-blue-500';
+                    statusText = 'In Transit';
+                    actionButton = `<button class="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600 transition-colors duration-200" onclick="showModal('${order.id}')">View Details</button>`;
+                    break;
+                case 'delivered':
+                    statusBadgeClass = 'bg-green-500';
+                    statusText = 'Delivered';
+                    actionButton = `<button class="bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded-md hover:bg-gray-300 transition-colors duration-200" onclick="showModal('${order.id}')">View History</button>`;
+                    break;
+                default:
+                    statusBadgeClass = 'bg-gray-400';
+                    statusText = 'Unknown';
+                    actionButton = `<button class="bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded-md hover:bg-gray-300 transition-colors duration-200" onclick="showModal('${order.id}')">View Details</button>`;
+            }
+            
+            return `
+                <div class="card p-4 rounded-lg shadow-md glass-card flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-lg">Order #${order.id}</p>
+                        <p class="text-gray-500">${order.client.name}</p>
+                        <p class="text-gray-500 text-sm">Total: BDT ${order.total.toFixed(2)}</p>
+                    </div>
+                    <div class="flex flex-col items-end space-y-2">
+                        <span class="px-3 py-1 text-xs font-semibold text-white ${statusBadgeClass} rounded-full">${statusText}</span>
+                        ${actionButton}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Populates the order lists based on the current order data.
+         */
+        function populateOrders() {
+            loadingSpinner.classList.remove('hidden');
+
+            // Simulate API call delay
+            setTimeout(() => {
+                newOrdersList.innerHTML = '';
+                currentDeliveriesList.innerHTML = '';
+                deliveryHistoryList.innerHTML = '';
+                
+                const newOrders = orders.filter(o => o.status === 'pending');
+                const currentDeliveries = orders.filter(o => o.status === 'in-transit');
+                const deliveryHistory = orders.filter(o => o.status === 'delivered');
+
+                newOrders.forEach(order => newOrdersList.innerHTML += renderOrderCard(order));
+                currentDeliveries.forEach(order => currentDeliveriesList.innerHTML += renderOrderCard(order));
+                deliveryHistory.forEach(order => deliveryHistoryList.innerHTML += renderOrderCard(order));
+
+                // Update stats and new orders badge
+                updateStats();
+                newOrdersBadge.textContent = newOrders.length > 0 ? newOrders.length : '';
+                newOrdersBadge.classList.toggle('hidden', newOrders.length === 0);
+
+                loadingSpinner.classList.add('hidden');
+            }, 1000); // 1 second delay
+        }
+
+        /**
+         * Updates the dashboard statistics.
+         */
+        function updateStats() {
+            const deliveredOrders = orders.filter(o => o.status === 'delivered');
+            const totalDeliveries = deliveredOrders.length;
+            const totalEarnings = deliveredOrders.reduce((sum, order) => sum + order.total, 0);
+
+            document.getElementById('stat-total-deliveries').textContent = totalDeliveries;
+            document.getElementById('stat-total-earnings').textContent = `BDT ${totalEarnings.toFixed(2)}`;
+            document.getElementById('stat-rating').textContent = deliveryman.rating.toFixed(1);
+        }
+
+        /**
+         * Switches the visible dashboard section.
+         * @param {string} sectionId - The ID of the section to show.
+         */
+        function showSection(sectionId) {
+            // Hide all sections
+            sections.forEach(section => section.classList.add('hidden'));
+            // Show the selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            // Deactivate all tab buttons
+            tabButtons.forEach(button => button.classList.remove('active-tab'));
+            // Activate the selected tab button
+            document.getElementById(sectionId + '-tab').classList.add('active-tab');
+        }
+
+        /**
+         * Sets the deliveryman's online/offline status.
+         * @param {string} newStatus - 'online' or 'offline'.
+         */
+        function setStatus(newStatus) {
+            // Simulate API call delay
+            loadingSpinner.classList.remove('hidden');
+
+            setTimeout(() => {
+                deliveryman.status = newStatus;
+                const statusIcon = statusButton.querySelector('i');
+                
+                if (newStatus === 'online') {
+                    statusBadge.textContent = 'Online';
+                    statusBadge.classList.remove('bg-red-500');
+                    statusBadge.classList.add('bg-green-500');
+                    statusText.textContent = 'Go Offline';
+                    statusButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    statusButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                    statusIcon.classList.remove('fa-exclamation-circle');
+                    statusIcon.classList.add('fa-circle');
+                    showMessage('You are now online!', 'bg-green-500');
+                } else {
+                    statusBadge.textContent = 'Offline';
+                    statusBadge.classList.remove('bg-green-500');
+                    statusBadge.classList.add('bg-red-500');
+                    statusText.textContent = 'Go Online';
+                    statusButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    statusButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                    statusIcon.classList.remove('fa-circle');
+                    statusIcon.classList.add('fa-exclamation-circle');
+                    showMessage('You are now offline.', 'bg-red-500');
+                }
+                loadingSpinner.classList.add('hidden');
+            }, 500); // 0.5 second delay
+        }
+
+        /**
+         * Shows the order details modal.
+         * @param {string} orderId - The ID of the order to display.
+         */
+        function showModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            currentOrderId = orderId;
+            let buttonHtml = '';
+            let statusIcon = '';
+            if (order.status === 'pending') {
+                buttonHtml = `<button id="update-status-btn" class="mt-6 w-full bg-blue-500 text-white px-4 py-3 rounded-md font-semibold transition-colors duration-200 hover:bg-blue-600" onclick="updateOrderStatus()">Accept Order</button>`;
+                statusIcon = `<i class="fa-solid fa-hourglass-half text-yellow-500 mr-2"></i>`;
+            } else if (order.status === 'in-transit') {
+                buttonHtml = `<button id="update-status-btn" class="mt-6 w-full bg-green-500 text-white px-4 py-3 rounded-md font-semibold transition-colors duration-200 hover:bg-green-600" onclick="updateOrderStatus()">Mark as Delivered</button>`;
+                statusIcon = `<i class="fa-solid fa-truck-fast text-blue-500 mr-2"></i>`;
+            } else if (order.status === 'delivered') {
+                statusIcon = `<i class="fa-solid fa-check-circle text-green-500 mr-2"></i>`;
+            }
+
+            // Generate list of items
+            const itemsList = order.items.map(item => `
+                <li class="flex justify-between items-center py-2 border-b last:border-b-0 border-gray-200">
+                    <span class="text-gray-700">${item.name} <span class="text-xs text-gray-400"> (x${item.quantity})</span></span>
+                    <span class="font-semibold text-gray-800">BDT ${item.price.toFixed(2)}</span>
+                </li>
+            `).join('');
+
+            // Generate modal content HTML
+            modalContent.innerHTML = `
+                <div class="mb-4">
+                    <p class="text-gray-500 text-sm">Order ID: <span class="font-bold text-gray-800">${order.id}</span></p>
+                    <p class="text-lg font-bold flex items-center">${statusIcon} Status: ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</p>
+                </div>
+                <div class="space-y-2 mb-4 p-4 rounded-md bg-gray-50 border border-gray-200">
+                    <p><span class="font-bold">Client:</span> ${order.client.name}</p>
+                    <p><span class="font-bold">Address:</span> ${order.client.address}</p>
+                    <p><span class="font-bold">Phone:</span> ${order.client.phone}</p>
+                    <p><span class="font-bold">Pickup:</span> ${order.pickup_location}</p>
+                </div>
+                <p class="mt-4 font-bold text-lg">Order Items:</p>
+                <ul class="list-inside text-sm mt-2">
+                    ${itemsList}
+                </ul>
+                <p class="mt-4 text-xl font-bold text-right">Total: <span class="text-blue-600">BDT ${order.total.toFixed(2)}</span></p>
+                ${buttonHtml}
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        /**
+         * Closes the order details modal.
+         */
+        function closeModal() {
+            modal.classList.add('hidden');
+            currentOrderId = null;
+        }
+
+        /**
+         * Updates the status of the currently viewed order.
+         */
+        function updateOrderStatus() {
+            if (!currentOrderId) return;
+            const orderIndex = orders.findIndex(o => o.id === currentOrderId);
+            if (orderIndex === -1) return;
+
+            let order = orders[orderIndex];
+            const oldStatus = order.status;
+            let newStatus = '';
+            let message = '';
+            
+            if (oldStatus === 'pending') {
+                newStatus = 'in-transit';
+                message = `Order #${order.id} has been accepted!`;
+            } else if (oldStatus === 'in-transit') {
+                newStatus = 'delivered';
+                message = `Order #${order.id} has been delivered successfully!`;
+            }
+            
+            // Simulate API call delay
+            loadingSpinner.classList.remove('hidden');
+            closeModal();
+
+            setTimeout(() => {
+                if (newStatus) {
+                    order.status = newStatus;
+                    orders[orderIndex] = order;
+                    showMessage(message, 'bg-green-500');
+                }
+                
+                populateOrders(); // Refresh the UI
+                loadingSpinner.classList.add('hidden');
+                
+                // Switch to the appropriate tab after update
+                if (newStatus === 'delivered') {
+                    showSection('delivery-history');
+                } else if (newStatus === 'in-transit') {
+                    showSection('current-deliveries');
+                }
+            }, 1000);
+        }
+
+        /**
+         * Shows a message box with a given message and color.
+         * @param {string} message - The message to display.
+         * @param {string} bgColor - The Tailwind background color class.
+         */
+        function showMessage(message, bgColor) {
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg z-[100] transition-all duration-300 transform translate-y-0 ${bgColor}`;
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        /**
+         * Toggles the mobile sidebar.
+         */
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            mobileMenuBackdrop.classList.toggle('hidden');
+            openSidebarBtn.classList.toggle('open');
+        }
+
+        // Event listeners for sidebar toggle
+        openSidebarBtn.addEventListener('click', toggleSidebar);
+        closeSidebarBtn.addEventListener('click', toggleSidebar);
+        mobileMenuBackdrop.addEventListener('click', toggleSidebar);
+        
+        // Event listener for status button
+        statusButton.addEventListener('click', () => {
+            if (deliveryman.status === 'online') {
+                setStatus('offline');
+            } else {
+                setStatus('online');
+            }
+        });
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('deliveryman-id').textContent = deliveryman.id;
+            populateOrders();
+            showSection('new-orders'); // Ensure the default tab is active
+        });
+    </script>
+</body>
+</html>
