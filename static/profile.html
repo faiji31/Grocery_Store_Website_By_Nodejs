@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .info-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600; /* font-semibold */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="customerdashboard.html" class="flex items-center space-x-2 text-2xl font-bold text-slate-800">
+                <i class="fa-solid fa-arrow-left text-blue-600"></i>
+                <span>Back</span>
+            </a>
+            <h1 class="text-3xl font-extrabold text-slate-800">My Profile</h1>
+            <div class="w-12"></div> <!-- Spacer to balance the header -->
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto p-4 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Profile & Last Payment Info Section -->
+        <section class="md:col-span-1 space-y-8">
+            <!-- User Profile Card -->
+            <div class="info-card bg-white p-6 rounded-xl shadow-md border border-gray-100 text-center">
+                <img src="https://placehold.co/128x128/e2e8f0/64748b?text=JD" alt="User Profile" class="mx-auto rounded-full w-32 h-32 mb-4">
+                <h2 class="text-2xl font-bold text-slate-800">John Doe</h2>
+                <p class="text-slate-500">johndoe@example.com</p>
+            </div>
+            
+            <!-- Last Payment Option Card -->
+            <div class="info-card bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fa-solid fa-credit-card text-3xl text-green-600"></i>
+                    <h3 class="text-xl font-bold text-slate-800">Last Payment Option</h3>
+                </div>
+                <div id="last-payment-method" class="text-center text-2xl font-semibold text-slate-600">
+                    <!-- Last payment method will be dynamically injected here -->
+                    <div id="loading-payment" class="flex justify-center p-4">
+                        <i class="fa-solid fa-spinner fa-spin-pulse text-2xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Details Section -->
+        <section class="md:col-span-2 space-y-8">
+            <!-- Last Order Details Card -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fa-solid fa-receipt text-3xl text-blue-600"></i>
+                    <h2 class="text-2xl font-bold text-slate-800">Last Order Details</h2>
+                </div>
+                <div id="last-order-details" class="space-y-4">
+                    <!-- Last order details will be dynamically injected here -->
+                    <div id="loading-last-order" class="flex justify-center p-4">
+                        <i class="fa-solid fa-spinner fa-spin-pulse text-2xl text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History List -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <div class="flex items-center space-x-4 mb-4">
+                    <i class="fa-solid fa-list-ul text-3xl text-orange-600"></i>
+                    <h2 class="text-2xl font-bold text-slate-800">Order History</h2>
+                </div>
+                <div id="order-history-list" class="space-y-4">
+                    <!-- Order history cards will be dynamically injected here -->
+                    <div id="loading-history" class="flex justify-center p-4">
+                        <i class="fa-solid fa-spinner fa-spin-pulse text-2xl text-blue-600"></i>
+                    </div>
+                </div>
+                <!-- Empty State -->
+                <div id="empty-history" class="text-center p-4 hidden">
+                    <p class="text-slate-400 mt-2">No past orders found.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const lastPaymentMethodEl = document.getElementById('last-payment-method');
+        const lastOrderDetailsEl = document.getElementById('last-order-details');
+        const orderHistoryListEl = document.getElementById('order-history-list');
+
+        // Dummy data to simulate fetching from the backend
+        const dummyLastOrder = {
+            order_id: 3,
+            order_date: '2025-07-29T18:15:01Z',
+            total_amount: 150.00,
+            shipping_address: '789 Client Avenue, Apt 4B, Dhaka, Dhaka, 1207',
+            order_status: 'Shipped',
+            payment_method: 'Credit Card',
+            currency: 'BDT'
+        };
+
+        const dummyOrderHistory = [
+            {
+                order_id: 2,
+                order_date: '2025-07-29T18:15:01Z',
+                total_amount: 730.00,
+                order_status: 'Processing',
+                payment_method: 'bKash',
+                currency: 'BDT'
+            },
+            {
+                order_id: 1,
+                order_date: '2025-07-29T18:15:01Z',
+                total_amount: 330.00,
+                order_status: 'Delivered',
+                payment_method: 'Cash on Delivery',
+                currency: 'BDT'
+            }
+        ];
+
+        /**
+         * Renders the last payment method.
+         * @param {string} method - The name of the last payment method.
+         */
+        function renderLastPaymentMethod(method) {
+            document.getElementById('loading-payment').classList.add('hidden');
+            lastPaymentMethodEl.innerHTML = method;
+        }
+
+        /**
+         * Renders the details of the last order.
+         * @param {Object} order - The last order object.
+         */
+        function renderLastOrderDetails(order) {
+            document.getElementById('loading-last-order').classList.add('hidden');
+            if (!order) {
+                lastOrderDetailsEl.innerHTML = '<p class="text-center text-slate-400">No last order found.</p>';
+                return;
+            }
+
+            lastOrderDetailsEl.innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <p class="text-lg font-semibold text-slate-800">Order ID: #${order.order_id}</p>
+                    <span class="status-badge ${getOrderStatusClass(order.order_status)}">${order.order_status}</span>
+                </div>
+                <p class="text-sm text-slate-500 mt-2">${formatDate(order.order_date)}</p>
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-xl font-bold text-green-600">${order.currency} ${order.total_amount.toFixed(2)}</span>
+                    <span class="text-md text-slate-500">via ${order.payment_method}</span>
+                </div>
+            `;
+        }
+        
+        /**
+         * Renders the order history list.
+         * @param {Array} orders - An array of past order objects.
+         */
+        function renderOrderHistory(orders) {
+            document.getElementById('loading-history').classList.add('hidden');
+            if (orders.length === 0) {
+                document.getElementById('empty-history').classList.remove('hidden');
+                return;
+            }
+
+            orderHistoryListEl.innerHTML = orders.map(order => `
+                <div class="info-card p-4 bg-white rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                        <p class="text-md font-semibold text-slate-800">Order #${order.order_id}</p>
+                        <p class="text-sm text-slate-500">${formatDate(order.order_date)}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg font-bold text-slate-700">${order.currency} ${order.total_amount.toFixed(2)}</span>
+                        <span class="block status-badge mt-1 ${getOrderStatusClass(order.order_status)}">${order.order_status}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Formats a timestamp into a readable date string.
+         * @param {string} dateString - The date string from the database.
+         * @returns {string} The formatted date.
+         */
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        /**
+         * Returns Tailwind classes for the order status badge.
+         * @param {string} status - The order status.
+         * @returns {string} Tailwind classes.
+         */
+        function getOrderStatusClass(status) {
+            switch (status) {
+                case 'Delivered':
+                    return 'bg-green-100 text-green-800';
+                case 'Shipped':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Processing':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Pending':
+                    return 'bg-gray-100 text-gray-800';
+                case 'Cancelled':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate API calls for each section with a small delay
+            setTimeout(() => {
+                renderLastPaymentMethod(dummyLastOrder.payment_method);
+            }, 500);
+            
+            setTimeout(() => {
+                renderLastOrderDetails(dummyLastOrder);
+            }, 1000);
+
+            setTimeout(() => {
+                renderOrderHistory(dummyOrderHistory);
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
