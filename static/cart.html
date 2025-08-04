@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Shopping Cart</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles for a modern look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-400 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="products-ui.html" class="flex items-center space-x-2 text-2xl font-bold text-slate-800">
+                <i class="fa-solid fa-arrow-left text-blue-600"></i>
+                <span>Back to Products</span>
+            </a>
+            <h1 class="text-3xl font-extrabold text-slate-800">Your Cart</h1>
+            <div class="flex items-center space-x-6">
+                <!-- Shopping Cart Icon (Placeholder) -->
+                <div class="relative">
+                    <i class="fa-solid fa-shopping-cart text-3xl text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Cart Items Section -->
+            <div class="md:col-span-2 bg-white rounded-xl shadow-lg p-6 flex flex-col space-y-4">
+                <div id="cart-items-list">
+                    <!-- Cart items will be dynamically injected here -->
+                </div>
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="flex items-center justify-center p-8">
+                    <i class="fa-solid fa-spinner fa-spin-pulse text-4xl text-blue-600"></i>
+                </div>
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden text-center p-12">
+                    <i class="fa-solid fa-shopping-cart text-6xl text-slate-300 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-slate-600">Your cart is empty.</h2>
+                    <p class="text-slate-400 mt-2">Time to start shopping!</p>
+                    <a href="product.html" class="mt-4 inline-block bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        Go to Products
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Order Summary Section -->
+            <div class="md:col-span-1 bg-white rounded-xl shadow-lg p-6 flex flex-col space-y-4 h-fit sticky top-24">
+                <h2 class="text-2xl font-bold text-slate-800 border-b pb-2">Order Summary</h2>
+                <div class="flex justify-between font-semibold text-slate-700">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">BDT 0.00</span>
+                </div>
+                <div class="flex justify-between font-semibold text-slate-700">
+                    <span>Shipping:</span>
+                    <span>Free</span>
+                </div>
+                <div class="flex justify-between text-xl font-bold text-slate-800 border-t pt-4 mt-4">
+                    <span>Total:</span>
+                    <span id="total-price">BDT 0.00</span>
+                </div>
+                <button id="checkout-button" class="w-full bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6 disabled:bg-gray-400" disabled>
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg hidden z-[101] transition-transform duration-300">
+        <!-- Messages will be injected here -->
+    </div>
+
+    <script>
+        const cartItemsList = document.getElementById('cart-items-list');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const emptyState = document.getElementById('empty-state');
+        const subtotalSpan = document.getElementById('subtotal');
+        const totalPriceSpan = document.getElementById('total-price');
+        const checkoutButton = document.getElementById('checkout-button');
+        const messageBox = document.getElementById('message-box');
+
+        /**
+         * Fetches cart items from the backend API and renders them.
+         */
+        async function fetchCartItems() {
+            loadingSpinner.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            cartItemsList.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/cart');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const cartItems = await response.json();
+                renderCartItems(cartItems);
+            } catch (error) {
+                console.error('Error fetching cart items:', error);
+                loadingSpinner.classList.add('hidden');
+                showMessage('Failed to load cart. Please log in or try again.', 'bg-red-500');
+            }
+        }
+
+        /**
+         * Renders the cart items list and updates the summary.
+         * @param {Array} items - An array of cart item objects.
+         */
+        function renderCartItems(items) {
+            loadingSpinner.classList.add('hidden');
+            if (items.length === 0) {
+                emptyState.classList.remove('hidden');
+                checkoutButton.disabled = true;
+            } else {
+                checkoutButton.disabled = false;
+                cartItemsList.innerHTML = items.map(item => `
+                    <div class="flex items-center space-x-4 p-4 border rounded-xl shadow-sm bg-gray-50">
+                        <img src="https://placehold.co/100x100/22c55e/ffffff?text=${encodeURIComponent(item.product_name)}" alt="${item.product_name}" class="w-20 h-20 rounded-md object-cover">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-slate-800">${item.product_name}</h3>
+                            <p class="text-sm text-slate-500">Price: BDT ${item.price.toFixed(2)} / ${item.unit}</p>
+                            <p class="font-medium text-blue-600 mt-1">Total: BDT ${(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="updateQuantity(${item.product_id}, 'decrease')" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-md hover:bg-slate-300 transition-colors">-</button>
+                            <span class="font-medium w-6 text-center">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.product_id}, 'increase')" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-md hover:bg-slate-300 transition-colors">+</button>
+                        </div>
+                        <button onclick="removeItem(${item.product_id})" class="text-red-500 hover:text-red-700 transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `).join('');
+                updateOrderSummary(items);
+            }
+        }
+
+        /**
+         * Updates the quantity of a product in the cart.
+         * @param {number} productId - The ID of the product.
+         * @param {string} action - 'increase' or 'decrease'.
+         */
+        async function updateQuantity(productId, action) {
+            const currentItem = document.querySelector(`[onclick="updateQuantity(${productId}, '${action}')"]`).closest('div.flex.items-center.space-x-4');
+            const quantitySpan = currentItem.querySelector('span.w-6');
+            let newQuantity = parseInt(quantitySpan.textContent);
+
+            if (action === 'increase') {
+                newQuantity++;
+            } else if (action === 'decrease' && newQuantity > 1) {
+                newQuantity--;
+            } else if (action === 'decrease' && newQuantity === 1) {
+                removeItem(productId);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cart/${productId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantity: newQuantity })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update cart item.');
+                }
+                showMessage('Cart updated!', 'bg-green-600');
+                fetchCartItems(); // Re-fetch to update UI
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                showMessage('Failed to update cart.', 'bg-red-500');
+            }
+        }
+
+        /**
+         * Removes a product from the cart.
+         * @param {number} productId - The ID of the product to remove.
+         */
+        async function removeItem(productId) {
+            if (confirm('Are you sure you want to remove this item from your cart?')) {
+                try {
+                    const response = await fetch(`/api/cart/${productId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to remove cart item.');
+                    }
+                    showMessage('Item removed from cart.', 'bg-red-500');
+                    fetchCartItems(); // Re-fetch to update UI
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                    showMessage('Failed to remove item.', 'bg-red-500');
+                }
+            }
+        }
+
+        /**
+         * Calculates and updates the order summary.
+         * @param {Array} items - An array of cart item objects.
+         */
+        function updateOrderSummary(items) {
+            const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            subtotalSpan.textContent = `BDT ${subtotal.toFixed(2)}`;
+            totalPriceSpan.textContent = `BDT ${subtotal.toFixed(2)}`;
+        }
+
+        /**
+         * Shows a message box with a given message and color.
+         * @param {string} message - The message to display.
+         * @param {string} bgColor - The Tailwind background color class.
+         */
+        function showMessage(message, bgColor) {
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg z-[101] transition-all duration-300 transform translate-y-0 ${bgColor}`;
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCartItems();
+        });
+    </script>
+</body>
+</html>

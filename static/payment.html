@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Payment</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .payment-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .payment-card.selected {
+            border-color: #2563eb; /* blue-600 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-2 text-2xl font-bold text-slate-800">
+                <i class="fa-solid fa-arrow-left text-blue-600"></i>
+                <span>Back</span>
+            </a>
+            <h1 class="text-3xl font-extrabold text-slate-800">Checkout</h1>
+            <div class="w-12"></div> <!-- Spacer to balance the header -->
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto p-4 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Payment Options Section -->
+        <section class="md:col-span-2">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Select a Payment Method</h2>
+            <div id="payment-options-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Payment cards will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Order Summary Section -->
+        <aside class="md:col-span-1 bg-white p-6 rounded-xl shadow-md border border-gray-100 h-fit">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Order Summary</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Subtotal</span>
+                    <span>BDT 980.00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Delivery Charge</span>
+                    <span>BDT 50.00</span>
+                </div>
+                <div class="border-t border-dashed border-gray-300 my-4"></div>
+                <div class="flex justify-between items-center text-2xl font-bold text-slate-800">
+                    <span>Total</span>
+                    <span>BDT 1030.00</span>
+                </div>
+            </div>
+            
+            <button id="pay-now-button" class="w-full mt-8 py-4 px-6 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Place Order
+            </button>
+        </aside>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg hidden z-[101] transition-transform duration-300">
+        <!-- Messages will be injected here -->
+    </div>
+
+    <script>
+        const paymentOptionsContainer = document.getElementById('payment-options-container');
+        const payNowButton = document.getElementById('pay-now-button');
+        const messageBox = document.getElementById('message-box');
+        let selectedPaymentMethod = null;
+
+        // Payment methods based on the SQL schema
+        const paymentMethods = [
+            { id: 'cod', name: 'Cash on Delivery', icon: 'fa-money-bill-wave' },
+            { id: 'online', name: 'Online Payment', icon: 'fa-credit-card' },
+            { id: 'bKash', name: 'bKash', icon: 'fa-mobile-screen-button' },
+            { id: 'nagad', name: 'Nagad', icon: 'fa-mobile-screen-button' },
+            { id: 'rocket', name: 'Rocket', icon: 'fa-mobile-screen-button' },
+            { id: 'credit', name: 'Credit Card', icon: 'fa-credit-card' }
+        ];
+
+        /**
+         * Renders the payment option cards.
+         */
+        function renderPaymentOptions() {
+            paymentOptionsContainer.innerHTML = paymentMethods.map(method => `
+                <div id="card-${method.id}" class="payment-card p-6 bg-white rounded-xl shadow-md border border-gray-100 flex items-center space-x-4 hover:border-blue-500 hover:shadow-lg" onclick="selectPaymentMethod('${method.id}')">
+                    <i class="fa-solid ${method.icon} text-4xl text-blue-600"></i>
+                    <span class="text-lg font-semibold text-slate-800">${method.name}</span>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Selects a payment method and updates the UI.
+         * @param {string} methodId - The ID of the selected payment method.
+         */
+        function selectPaymentMethod(methodId) {
+            // Remove 'selected' class from all cards
+            document.querySelectorAll('.payment-card').forEach(card => {
+                card.classList.remove('selected');
+                card.classList.remove('border-blue-600');
+            });
+
+            // Add 'selected' class to the clicked card
+            const selectedCard = document.getElementById(`card-${methodId}`);
+            selectedCard.classList.add('selected');
+            selectedCard.classList.add('border-blue-600');
+
+            selectedPaymentMethod = methodId;
+            payNowButton.disabled = false;
+        }
+
+        /**
+         * Simulates the payment process.
+         */
+        payNowButton.addEventListener('click', () => {
+            if (selectedPaymentMethod) {
+                // Disable button and show loading spinner (or similar)
+                payNowButton.disabled = true;
+                payNowButton.innerHTML = `<i class="fa-solid fa-spinner fa-spin-pulse mr-2"></i> Processing...`;
+
+                // Simulate an API call
+                setTimeout(() => {
+                    // Reset button
+                    payNowButton.disabled = false;
+                    payNowButton.innerHTML = 'Place Order';
+
+                    // Show success message
+                    showMessage(`Order placed successfully with ${getPaymentMethodName(selectedPaymentMethod)}!`, 'bg-green-600');
+
+                    // Here you would redirect the user to a confirmation page
+                    console.log(`Order placed successfully. Payment method: ${selectedPaymentMethod}`);
+                }, 2000); // Simulate 2-second processing time
+            }
+        });
+        
+        /**
+         * Helper function to get the full name of a payment method by its ID.
+         * @param {string} methodId - The ID of the payment method.
+         * @returns {string} The full name.
+         */
+        function getPaymentMethodName(methodId) {
+            const method = paymentMethods.find(m => m.id === methodId);
+            return method ? method.name : 'Unknown';
+        }
+
+        /**
+         * Shows a message box with a given message and color.
+         * @param {string} message - The message to display.
+         * @param {string} bgColor - The Tailwind background color class.
+         */
+        function showMessage(message, bgColor) {
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg z-[101] transition-all duration-300 transform translate-y-0 ${bgColor}`;
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPaymentOptions();
+        });
+    </script>
+</body>
+</html>

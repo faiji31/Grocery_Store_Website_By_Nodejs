@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .order-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .order-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600; /* font-semibold */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-2 text-2xl font-bold text-slate-800">
+                <i class="fa-solid fa-arrow-left text-blue-600"></i>
+                <span>Back</span>
+            </a>
+            <h1 class="text-3xl font-extrabold text-slate-800">My Orders</h1>
+            <div class="w-12"></div> <!-- Spacer to balance the header -->
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8">
+        <section class="mb-8">
+            <div id="orders-list" class="space-y-6">
+                <!-- Order cards will be dynamically injected here -->
+            </div>
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="flex items-center justify-center p-8 hidden">
+                <i class="fa-solid fa-spinner fa-spin-pulse text-4xl text-blue-600"></i>
+            </div>
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center p-12 hidden">
+                <i class="fa-solid fa-box-open text-6xl text-slate-300 mb-4"></i>
+                <h2 class="text-2xl font-bold text-slate-600">No orders found.</h2>
+                <p class="text-slate-400 mt-2">Looks like you haven't placed any orders yet.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg hidden z-[101] transition-transform duration-300">
+        <!-- Messages will be injected here -->
+    </div>
+
+    <script>
+        const ordersList = document.getElementById('orders-list');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const emptyState = document.getElementById('empty-state');
+        const messageBox = document.getElementById('message-box');
+
+        // Dummy data to simulate fetching from the `orders` table
+        // In a real application, this would be fetched from your Node.js backend.
+        const dummyOrders = [
+            {
+                order_id: 1,
+                client_id: 3,
+                order_date: '2025-07-29T18:15:01Z',
+                total_amount: 330.00,
+                shipping_address: '789 Client Avenue, Apt 4B, Dhaka, Dhaka, 1207',
+                payment_method: 'Cash on Delivery',
+                payment_status: 'Pending',
+                order_status: 'Pending',
+                currency: 'BDT'
+            },
+            {
+                order_id: 2,
+                client_id: 4,
+                order_date: '2025-07-29T18:15:01Z',
+                total_amount: 730.00,
+                shipping_address: '101 Green Road, House 12, Chattogram, Chattogram, 4000',
+                payment_method: 'bKash',
+                payment_status: 'Paid',
+                order_status: 'Processing',
+                currency: 'BDT'
+            },
+            {
+                order_id: 3,
+                client_id: 3,
+                order_date: '2025-07-29T18:15:01Z',
+                total_amount: 150.00,
+                shipping_address: '789 Client Avenue, Apt 4B, Dhaka, Dhaka, 1207',
+                payment_method: 'Credit Card',
+                payment_status: 'Paid',
+                order_status: 'Shipped',
+                currency: 'BDT'
+            }
+        ];
+
+        /**
+         * Renders the order list based on the provided data.
+         * In a real app, this would be the response from your /api/orders endpoint.
+         * @param {Array} orders - An array of order objects.
+         */
+        function renderOrders(orders) {
+            loadingSpinner.classList.add('hidden');
+            if (orders.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            ordersList.innerHTML = orders.map(order => `
+                <div class="order-card p-6 bg-white rounded-xl shadow-md border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                    <!-- Order Details -->
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <h3 class="text-xl font-bold text-slate-800">Order #${order.order_id}</h3>
+                            <span class="text-sm text-slate-500">(${formatDate(order.order_date)})</span>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-2">${order.shipping_address}</p>
+                        <div class="text-2xl font-bold text-green-600">${order.currency} ${order.total_amount.toFixed(2)}</div>
+                    </div>
+                    
+                    <!-- Order Status Badges -->
+                    <div class="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                        <span class="status-badge ${getPaymentStatusClass(order.payment_status)}">
+                            ${order.payment_status}
+                        </span>
+                        <span class="status-badge ${getOrderStatusClass(order.order_status)}">
+                            ${order.order_status}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Formats a timestamp into a readable date string.
+         * @param {string} dateString - The date string from the database.
+         * @returns {string} The formatted date.
+         */
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        /**
+         * Returns Tailwind classes for the payment status badge.
+         * @param {string} status - The payment status.
+         * @returns {string} Tailwind classes.
+         */
+        function getPaymentStatusClass(status) {
+            switch (status) {
+                case 'Paid':
+                    return 'bg-green-100 text-green-800';
+                case 'Pending':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Failed':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        /**
+         * Returns Tailwind classes for the order status badge.
+         * @param {string} status - The order status.
+         * @returns {string} Tailwind classes.
+         */
+        function getOrderStatusClass(status) {
+            switch (status) {
+                case 'Delivered':
+                    return 'bg-green-100 text-green-800';
+                case 'Shipped':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Processing':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Pending':
+                    return 'bg-gray-100 text-gray-800';
+                case 'Cancelled':
+                    return 'bg-red-100 text-red-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        /**
+         * Shows a message box with a given message and color.
+         * @param {string} message - The message to display.
+         * @param {string} bgColor - The Tailwind background color class.
+         */
+        function showMessage(message, bgColor) {
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 text-white rounded-lg shadow-lg z-[101] transition-all duration-300 transform translate-y-0 ${bgColor}`;
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simulate an API call delay
+            loadingSpinner.classList.remove('hidden');
+            setTimeout(() => {
+                renderOrders(dummyOrders);
+            }, 1500); // Simulate 1.5 second loading time
+        });
+    </script>
+</body>
+</html>
